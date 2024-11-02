@@ -1,11 +1,11 @@
-extends Camera
+extends Camera3D
 
 ########################################
 ### Camera responsible for the spin animations that focuses a bodypart in the character editor
 ###
 
 
-onready var animate : AnimationPlayer = $AnimationPlayer
+@onready var animate : AnimationPlayer = $AnimationPlayer
 
 var current_bodypart : String = "default"
 var in_transition : bool = false
@@ -41,7 +41,7 @@ func move_closeup_to(bodypart) -> void:
 
 	### play the animation and wait until it has finished
 	animate.play(next_animation_name)
-	yield(animate, "animation_finished")
+	await animate.animation_finished
 	
 	### camera spinning is finished, allow for new camera spins and tell everyone interested that we are dizzy now
 	in_transition = false

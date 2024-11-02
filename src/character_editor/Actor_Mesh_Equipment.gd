@@ -1,4 +1,4 @@
-extends Spatial
+extends Node3D
 
 #############################################
 ### Keeps track of the actors current visible equipment meshes and slots
@@ -7,13 +7,13 @@ extends Spatial
 
 
 
-var skin : MeshInstance
-var hair : MeshInstance
-var torso : MeshInstance
-var legs : MeshInstance
-var feet : MeshInstance
-var hands : MeshInstance
-var skeleton : Skeleton
+var skin : MeshInstance3D
+var hair : MeshInstance3D
+var torso : MeshInstance3D
+var legs : MeshInstance3D
+var feet : MeshInstance3D
+var hands : MeshInstance3D
+var skeleton : Skeleton3D
 
 
 ### dictionary that holds all found and matching MeshInstance Nodes / equipment slots
@@ -31,8 +31,8 @@ var armature : Dictionary = {
 func _ready():
 	
 	### find the skeleton and all available, matching mesh nodes
-	if has_node("Skeleton"):
-		skeleton = get_node("Skeleton")
+	if has_node("Skeleton3D"):
+		skeleton = get_node("Skeleton3D")
 		
 		if skeleton.has_node("Skin"):
 			skin = skeleton.get_node("Skin")
@@ -104,7 +104,7 @@ func _on_changed_mesh_color(new_color, equipment):
 		
 	### if our material override is empty we create a new one and than apply the new color override
 	if not armature.get(equipment).material_override:
-		armature.get(equipment).material_override = SpatialMaterial.new()
+		armature.get(equipment).material_override = StandardMaterial3D.new()
 	armature.get(equipment).material_override.albedo_color = new_color
 	
 	

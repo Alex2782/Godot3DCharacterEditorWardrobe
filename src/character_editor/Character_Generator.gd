@@ -1,4 +1,4 @@
-extends Spatial
+extends Node3D
 
 ##################################################
 ### Character Editor node
@@ -46,14 +46,15 @@ var blendshape_to_category : Dictionary = {
 ### gets 'category:node' pairs on _ready() from the export nodepaths
 var category_to_node : Dictionary = {}
 
-export(PackedScene) onready var animated_background_scene
+#@export(PackedScene) onready var animated_background_scene
+@export var animated_background_scene: PackedScene
 
-var actor : Spatial
+var actor : Node3D
 var character_property_template : PackedScene = preload("res://gui/character_editor/Character_Editor_Property.tscn")
 
-onready var mannequin = $ViewportContainer/Viewport/Character_Mannequin
-onready var camera = $ViewportContainer/Viewport/Character_Mannequin/Character_Mannequin_Camera
-onready var namechange_popup = $Namechange_Popup
+@onready var mannequin = $SubViewportContainer/SubViewport/Character_Mannequin
+@onready var camera = $SubViewportContainer/SubViewport/Character_Mannequin/Character_Mannequin_Camera
+@onready var namechange_popup = $Namechange_Popup
 
 
 
@@ -61,12 +62,12 @@ func _ready():
 	
 	### if we have an animated background add it to the scene
 	if animated_background_scene:
-		add_child(animated_background_scene.instance())
+		add_child(animated_background_scene.instantiate())
 		
 	
 	### check if we have a skeleton and actor at the right position before we explode in a thousand error messages
-	if has_node("ViewportContainer/Viewport/Character_Mannequin/Actor/Skeleton"):
-		actor = get_node("ViewportContainer/Viewport/Character_Mannequin/Actor")
+	if has_node("SubViewportContainer/SubViewport/Character_Mannequin/Actor/Skeleton3D"):
+		actor = get_node("SubViewportContainer/SubViewport/Character_Mannequin/Actor")
 		
 		### assigning and connect all the nodes from the export nodepaths
 		assign_nodepaths()
@@ -86,7 +87,7 @@ func _ready():
 				if not blendshape_category:
 					continue
 				
-				var new_blendshape_slider : HSlider = character_property_template.instance()
+				var new_blendshape_slider : HSlider = character_property_template.instantiate()
 				
 				### rename our blendshape name to something more user friendly for the label
 				new_blendshape_slider.display_text = blendshape_renames.get(blendshape_name, blendshape_name)
@@ -96,19 +97,19 @@ func _ready():
 				category_to_node[blendshape_category].add_child(new_blendshape_slider)
 				
 				### connect the slider with our actor node so everytime the value changes the blendshapes get updated
-				new_blendshape_slider.connect("changed_blendshape_value", actor, "_on_changed_blendshape_value")
+				new_blendshape_slider.connect("changed_blendshape_value", Callable(actor, "_on_changed_blendshape_value"))
 
 		### connect the colorpicker with our actor node so the colorcode for the material_overwrite gets updated
-		hair_colorpicker.connect("changed_mesh_color", actor, "_on_changed_mesh_color")
+		hair_colorpicker.connect("changed_mesh_color", Callable(actor, "_on_changed_mesh_color"))
 		
 
 	### connect with our camera so we know when the current camera spin has ended
-	camera.connect("camera_spin_finished", self , "_on_camera_spin_finished")
+	camera.connect("camera_spin_finished", Callable(self, "_on_camera_spin_finished"))
 	
 	
 	
 	### connect the namechange box, so we can update the displays and maybe save the name somewhere else
-	namechange_popup.connect("character_name_changed", self, "_on_character_name_changed")
+	namechange_popup.connect("character_name_changed", Callable(self, "_on_character_name_changed"))
 
 
 
@@ -187,50 +188,65 @@ func assign_nodepaths() -> void:
 	category_to_node["legs"] = legs_properties_container
 	category_to_node["feet"] = feet_properties_container
 	
-	head_category_button.connect("pressed", self, "_on_category_button_pressed", ["head"])
-	torso_category_button.connect("pressed", self, "_on_category_button_pressed", ["torso"])
-	legs_category_button.connect("pressed", self, "_on_category_button_pressed", ["legs"])
-	feet_category_button.connect("pressed", self, "_on_category_button_pressed", ["feet"])
+	head_category_button.connect("pressed", Callable(self, "_on_category_button_pressed").bind("head"))
+	torso_category_button.connect("pressed", Callable(self, "_on_category_button_pressed").bind("torso"))
+	legs_category_button.connect("pressed", Callable(self, "_on_category_button_pressed").bind("legs"))
+	feet_category_button.connect("pressed", Callable(self, "_on_category_button_pressed").bind("feet"))
 	
 	hair_assets_gridcontainer = get_node(hair_assets_gridcontainer_path)
 	torso_assets_gridcontainer = get_node(torso_assets_gridcontainer_path)
 	legs_assets_gridcontainer = get_node(legs_assets_gridcontainer_path)
 	feet_assets_gridcontainer = get_node(feet_assets_gridcontainer_path)
 	for asset in hair_assets_gridcontainer.get_children():
-		asset.connect("character_asset_clicked", actor, "_on_changed_asset")
+		asset.connect("character_asset_clicked", Callable(actor, "_on_changed_asset"))
 	for asset in torso_assets_gridcontainer.get_children():
-		asset.connect("character_asset_clicked", actor, "_on_changed_asset")
+		asset.connect("character_asset_clicked", Callable(actor, "_on_changed_asset"))
 	for asset in legs_assets_gridcontainer.get_children():
-		asset.connect("character_asset_clicked", actor, "_on_changed_asset")
+		asset.connect("character_asset_clicked", Callable(actor, "_on_changed_asset"))
 	for asset in feet_assets_gridcontainer.get_children():
-		asset.connect("character_asset_clicked", actor, "_on_changed_asset")
+		asset.connect("character_asset_clicked", Callable(actor, "_on_changed_asset"))
 
 
 ### nodepath picker for all script relevant nodes for comfort
 ### rearranging the node structure for the ui and then retyping all the paths is no fun afterall
 ### placed at the bottom because you guys take up way to much space at the top!
-export(NodePath) onready var hair_colorpicker_path
+#@export(NodePath) onready var hair_colorpicker_path
+@export var hair_colorpicker_path: NodePath
+
 var hair_colorpicker : ColorPicker
-export(NodePath) onready var head_properties_path
-export(NodePath) onready var torso_properties_path
-export(NodePath) onready var legs_properties_path
-export(NodePath) onready var feet_properties_path
+#@export(NodePath) onready var head_properties_path
+@export var head_properties_path: NodePath
+#@export(NodePath) onready var torso_properties_path
+@export var torso_properties_path: NodePath
+#@export(NodePath) onready var legs_properties_path
+@export var legs_properties_path: NodePath
+#@export(NodePath) onready var feet_properties_path
+@export var feet_properties_path: NodePath
+
 var head_properties_container : VBoxContainer
 var torso_properties_container : VBoxContainer
 var legs_properties_container : VBoxContainer
 var feet_properties_container : VBoxContainer
-export(NodePath) onready var head_category_button_path
-export(NodePath) onready var torso_category_button_path
-export(NodePath) onready var legs_category_button_path
-export(NodePath) onready var feet_category_button_path
+#@export(NodePath) onready var head_category_button_path
+@export var head_category_button_path: NodePath
+#@export(NodePath) onready var torso_category_button_path
+@export var torso_category_button_path: NodePath
+#@export(NodePath) onready var legs_category_button_path
+@export var legs_category_button_path: NodePath
+#@export(NodePath) onready var feet_category_button_path
+@export var feet_category_button_path: NodePath
 var head_category_button : Button
 var torso_category_button : Button
 var legs_category_button : Button
 var feet_category_button : Button
-export(NodePath) onready var hair_assets_gridcontainer_path
-export(NodePath) onready var torso_assets_gridcontainer_path
-export(NodePath) onready var legs_assets_gridcontainer_path
-export(NodePath) onready var feet_assets_gridcontainer_path
+#@export(NodePath) onready var hair_assets_gridcontainer_path
+@export var hair_assets_gridcontainer_path: NodePath
+#@export(NodePath) onready var torso_assets_gridcontainer_path
+@export var torso_assets_gridcontainer_path: NodePath
+#@export(NodePath) onready var legs_assets_gridcontainer_path
+@export var legs_assets_gridcontainer_path: NodePath
+#@export(NodePath) onready var feet_assets_gridcontainer_path
+@export var feet_assets_gridcontainer_path: NodePath
 var hair_assets_gridcontainer : GridContainer
 var torso_assets_gridcontainer : GridContainer
 var legs_assets_gridcontainer : GridContainer

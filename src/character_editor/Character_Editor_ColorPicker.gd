@@ -1,6 +1,6 @@
 extends ColorPicker
 
-export(String, "hair", "torso", "legs", "feet") var slot = "hair"
+@export var slot = "hair" # (String, "hair", "torso", "legs", "feet")
 
 signal changed_mesh_color
 

@@ -1,9 +1,9 @@
 extends PanelContainer
 
 
-export(String) var display_text
+@export var display_text: String
 var display_label
-export(String) var blendshape_name
+@export var blendshape_name: String
 var slider
 
 signal changed_blendshape_value
